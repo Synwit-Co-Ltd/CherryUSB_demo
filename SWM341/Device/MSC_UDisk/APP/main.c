@@ -1,4 +1,5 @@
 #include "SWM341.h"
+#include "FlashDisk.h"
 
 #undef USB_FEATURE_REMOTE_WAKEUP
 #undef USB_FEATURE_ENDPOINT_HALT
@@ -6,7 +7,7 @@
 
 
 void SerialInit(void);
-void msc_ram_init(uint8_t busid, uintptr_t reg_base);
+void msc_flash_init(uint8_t busid, uintptr_t reg_base);
 
 int main(void)
 {
@@ -14,10 +15,15 @@ int main(void)
 	
 	SerialInit();
 	
-	msc_ram_init(0, 0);
+	FlashDiskInit();
+	
+	msc_flash_init(0, 0);
 	
  	while(1==1)
  	{
+		SW_DelayMS(500);
+		
+		FlashDiskFlush();
  	}
 }
 

@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>SWM341xE</Device>
           <Vendor>Synwit</Vendor>
-          <PackID>Synwit.SWM32_DFP.2.2.3</PackID>
+          <PackID>Synwit.SWM32_DFP.2.2.7</PackID>
           <PackURL>http://www.synwit.com/pack</PackURL>
           <Cpu>CPUTYPE("Cortex-M33") FPU3(SFPU) DSP CLOCK(12000000) ESEL ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -389,9 +389,14 @@
               <FilePath>.\APP\main.c</FilePath>
             </File>
             <File>
-              <FileName>msc_ram_template.c</FileName>
+              <FileName>msc_flash.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\CherryUSB\demo\msc_ram_template.c</FilePath>
+              <FilePath>.\APP\msc_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>FlashDisk.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\FlashDisk.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -427,6 +432,16 @@
               <FileName>SWM341_usbd.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\SWM341_Lib\SWM341_StdPeriph_Driver\CSL\SWM341_StdPeriph_Driver\SWM341_usbd.c</FilePath>
+            </File>
+            <File>
+              <FileName>SWM341_sfc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\SWM341_Lib\SWM341_StdPeriph_Driver\CSL\SWM341_StdPeriph_Driver\SWM341_sfc.c</FilePath>
+            </File>
+            <File>
+              <FileName>SWM341_sdram.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\SWM341_Lib\SWM341_StdPeriph_Driver\CSL\SWM341_StdPeriph_Driver\SWM341_sdram.c</FilePath>
             </File>
           </Files>
         </Group>
