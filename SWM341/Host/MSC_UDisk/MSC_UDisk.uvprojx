@@ -393,6 +393,11 @@
               <FileType>1</FileType>
               <FilePath>.\APP\usb_host.c</FilePath>
             </File>
+            <File>
+              <FileName>usbh_fatfs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\usbh_fatfs.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -417,11 +422,6 @@
               <FileName>diskio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\CherryUSB\third_party\fatfs-0.14\source\diskio.c</FilePath>
-            </File>
-            <File>
-              <FileName>usbh_fatfs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\APP\usbh_fatfs.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -462,11 +462,6 @@
               <FileName>port.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\CherryUSB\third_party\FreeRTOS-10.4\portable\GCC\ARM_CM3\port.c</FilePath>
-            </File>
-            <File>
-              <FileName>usb_osal_freertos.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\CherryUSB\osal\usb_osal_freertos.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -552,6 +547,11 @@
               <FileName>usb_hc_swm341.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\CherryUSB\port\swm341\usb_hc_swm341.c</FilePath>
+            </File>
+            <File>
+              <FileName>usb_osal_freertos.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\CherryUSB\osal\usb_osal_freertos.c</FilePath>
             </File>
           </Files>
         </Group>

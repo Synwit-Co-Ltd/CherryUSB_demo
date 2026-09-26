@@ -1,4 +1,4 @@
-#include "SWM341.h"
+#include "SWM350.h"
 
 #undef USB_FEATURE_REMOTE_WAKEUP
 #undef USB_FEATURE_ENDPOINT_HALT
@@ -9,26 +9,21 @@
 
 
 void SerialInit(void);
+void msc_flash_init(uint8_t busid, uintptr_t reg_base);
 
 int main(void)
 {
- 	SystemInit();
+	SystemInit();
 	
 	SerialInit();
 	
-	usbh_initialize(0, 0, 0);
+	usbh_initialize(0, USBG_BASE, 0);
 	
 	vTaskStartScheduler();
-	
- 	while(1==1)
- 	{
- 	}
-}
-
-
-void USB_Handler(void)
-{
-	USBH_IRQHandler(0);
+   	
+	while(1==1)
+	{
+	}
 }
 
 
@@ -36,10 +31,10 @@ void SerialInit(void)
 {
 	UART_InitStructure UART_initStruct;
 	
-	PORT_Init(PORTM, PIN0, PORTM_PIN0_UART0_RX, 1);
-	PORT_Init(PORTM, PIN1, PORTM_PIN1_UART0_TX, 0);
- 	
- 	UART_initStruct.Baudrate = 57600;
+	PORT_Init(PORTA, PIN6, FUNMUX0_UART0_TXD, 0);
+	PORT_Init(PORTA, PIN7, FUNMUX1_UART0_RXD, 1);
+	
+ 	UART_initStruct.Baudrate = 115200;
 	UART_initStruct.DataBits = UART_DATA_8BIT;
 	UART_initStruct.Parity = UART_PARITY_NONE;
 	UART_initStruct.StopBits = UART_STOP_1BIT;
@@ -53,11 +48,14 @@ void SerialInit(void)
 	UART_Open(UART0);
 }
 
-int fputc(int ch, FILE *f)
+int _write(int fd, char *ptr, int len)
 {
-	UART_WriteByte(UART0, ch);
+	for(int i = 0; i < len; i++)
+	{
+		UART_WriteByte(UART0, *ptr++);
+		
+		while(UART_IsTXBusy(UART0)) __NOP();
+	}
 	
-	while(UART_IsTXBusy(UART0));
- 	
-	return ch;
+	return len;
 }
