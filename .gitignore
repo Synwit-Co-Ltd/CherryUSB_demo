@@ -4,6 +4,12 @@ JLinkLog.txt
 JLinkSettings.ini
 EventRecorderStub.scvd
 
+Debug/
+Release/
+.settings/
+*.launch
+*.adx.launch
+
 # Prerequisites
 *.d
 
