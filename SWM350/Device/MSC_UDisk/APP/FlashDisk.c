@@ -1,13 +1,20 @@
 #include <string.h>
 #include "SWM350.h"
+#include "W25N01G.h"
 #include "FlashDisk.h"
 
 
-#define FLASH_BLOCK_SIZE	4096
+#if (MSC_MEDIUM == MSC_MEDIUM_SPINAND)
+#define FLASH_BLOCK_SIZE	(1024 * 128)
+static uint8_t *FLASH_Block_Cache = (uint8_t *)PSRAMM_BASE;
+#else
+#define FLASH_BLOCK_SIZE	(1024 * 4)
+static uint8_t  FLASH_Block_Cache[FLASH_BLOCK_SIZE] __attribute__((aligned(8)));
+#endif
+
 
 static uint64_t Flash_Block_Addr = 0xFFFFFFFF;
 static uint32_t FLASH_Cache_Dirty = 0;
-static uint8_t  FLASH_Block_Cache[FLASH_BLOCK_SIZE] __attribute__((aligned(8)));
 
 
 void FlashDiskInit(void)
@@ -41,14 +48,39 @@ void FlashDiskInit(void)
 	}
 
 #elif (MSC_MEDIUM == MSC_MEDIUM_SDCARD)
-	PORT_Init(PORTM, PIN2, PORTM_PIN2_SD_CLK, 0);
-	PORT_Init(PORTM, PIN4, PORTM_PIN4_SD_CMD, 1);
-	PORT_Init(PORTM, PIN5, PORTM_PIN5_SD_D0,  1);
-	PORT_Init(PORTM, PIN6, PORTM_PIN6_SD_D1,  1);
-	PORT_Init(PORTN, PIN0, PORTN_PIN0_SD_D2,  1);
-	PORT_Init(PORTN, PIN1, PORTN_PIN1_SD_D3,  1);
+	PORT_Init(PORTE, PIN5, PORTE_PIN5_SD_CLK, 0);
+	PORT_Init(PORTA, PIN8, PORTA_PIN8_SD_CMD, 1);
+	PORT_Init(PORTE, PIN6, PORTE_PIN6_SD_D0,  1);
+	PORT_Init(PORTB, PIN8, PORTB_PIN8_SD_D1,  1);
+	PORT_Init(PORTE, PIN2, PORTE_PIN2_SD_D2,  1);
+	PORT_Init(PORTE, PIN3, PORTE_PIN3_SD_D3,  1);
 	
 	SDIO_Init(20000000);
+
+#elif (MSC_MEDIUM == MSC_MEDIUM_SPINAND)
+	W25N01G_Init();
+	
+	int id = W25N01G_ReadJEDEC();
+	printf("SPI Flash JEDEC: %06X\n", id);
+	
+	W25N01G_FlashProtect(W25N_PROTECT_None);
+#endif
+	
+#if ((MSC_MEDIUM == MSC_MEDIUM_PSRAM) || (MSC_MEDIUM == MSC_MEDIUM_SPINAND))
+	PSRAM_InitStructure PSRAM_initStruct;
+	
+#ifndef PSRAM_XCCELA
+	PSRAM_initStruct.RowSize = PSRAM_RowSize_1KB;
+	PSRAM_initStruct.tRWR = 50;
+	PSRAM_initStruct.tACC = 50;
+	PSRAM_initStruct.tCSM = 4;
+	PSRAM_Init(&PSRAM_initStruct);
+#else
+	PSRAM_initStruct.RowSize = PSRAM_RowSize_1KB;
+	PSRAM_initStruct.tRC = 60;
+	PSRAM_initStruct.tCEM = 3;
+	PSRAM_Init(&PSRAM_initStruct);
+#endif
 #endif
 }
 
@@ -72,6 +104,11 @@ void FlashDiskRead(uint64_t addr, uint32_t size, uint8_t *buff)
 			QSPI_Read_4bit(QSPI0, DATA_FLASH_BASE + Flash_Block_Addr, FLASH_Block_Cache, FLASH_BLOCK_SIZE);
 #elif (MSC_MEDIUM == MSC_MEDIUM_SDCARD)
 			SDIO_MultiBlockRead(Flash_Block_Addr/512, FLASH_BLOCK_SIZE/512, (uint32_t *)FLASH_Block_Cache);
+#elif (MSC_MEDIUM == MSC_MEDIUM_SPINAND)
+			for(int offset = 0; offset < FLASH_BLOCK_SIZE; offset += W25N_PAGE_SIZE)
+				W25N01G_Read_4bit((DATA_FLASH_BASE + Flash_Block_Addr + offset)/W25N_PAGE_SIZE, &FLASH_Block_Cache[offset]);
+#elif (MSC_MEDIUM == MSC_MEDIUM_PSRAM)
+			memcpy(FLASH_Block_Cache, (uint8_t *)(uint32_t)(PSRAMM_BASE + Flash_Block_Addr), FLASH_BLOCK_SIZE);
 #endif
 		}
 		
@@ -107,6 +144,11 @@ void FlashDiskWrite(uint64_t addr, uint32_t size, const uint8_t *buff)
 			QSPI_Read_4bit(QSPI0, DATA_FLASH_BASE + Flash_Block_Addr, FLASH_Block_Cache, FLASH_BLOCK_SIZE);
 #elif (MSC_MEDIUM == MSC_MEDIUM_SDCARD)
 			SDIO_MultiBlockRead(Flash_Block_Addr/512, FLASH_BLOCK_SIZE/512, (uint32_t *)FLASH_Block_Cache);
+#elif (MSC_MEDIUM == MSC_MEDIUM_SPINAND)
+			for(int offset = 0; offset < FLASH_BLOCK_SIZE; offset += W25N_PAGE_SIZE)
+				W25N01G_Read_4bit((DATA_FLASH_BASE + Flash_Block_Addr + offset)/W25N_PAGE_SIZE, &FLASH_Block_Cache[offset]);
+#elif (MSC_MEDIUM == MSC_MEDIUM_PSRAM)
+			memcpy(FLASH_Block_Cache, (uint8_t *)(uint32_t)(PSRAMM_BASE + Flash_Block_Addr), FLASH_BLOCK_SIZE);
 #endif
 		}
 		
@@ -147,6 +189,13 @@ void FlashDiskFlush(void)
 		}
 #elif (MSC_MEDIUM == MSC_MEDIUM_SDCARD)
 		SDIO_MultiBlockWrite(Flash_Block_Addr/512, FLASH_BLOCK_SIZE/512, (uint32_t *)FLASH_Block_Cache);
+#elif (MSC_MEDIUM == MSC_MEDIUM_SPINAND)
+		W25N01G_Erase((DATA_FLASH_BASE + Flash_Block_Addr)/W25N_PAGE_SIZE, 1);
+		
+		for(int offset = 0; offset < FLASH_BLOCK_SIZE; offset += W25N_PAGE_SIZE)
+			W25N01G_Write_4bit((DATA_FLASH_BASE + Flash_Block_Addr + offset)/W25N_PAGE_SIZE, &FLASH_Block_Cache[offset]);
+#elif (MSC_MEDIUM == MSC_MEDIUM_PSRAM)
+		memcpy((uint8_t *)(uint32_t)(PSRAMM_BASE + Flash_Block_Addr), FLASH_Block_Cache, FLASH_BLOCK_SIZE);
 #endif
 		
         FLASH_Cache_Dirty = 0;

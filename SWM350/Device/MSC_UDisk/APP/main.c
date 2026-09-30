@@ -26,7 +26,7 @@ int main(void)
 	{
 		usbd_msc_polling(0);
 		
-		if(SysTick_Value() - t_flush > CyclesPerUs * 1000 * 20)
+		if(SysTick_Value() - t_flush > CyclesPerUs * 1000 * 1000)
 		{
 			t_flush = SysTick_Value();
 			
