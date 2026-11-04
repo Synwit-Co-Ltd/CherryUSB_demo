@@ -7,9 +7,6 @@
 #define CHERRYUSB_CONFIG_H
 
 
-#define CONFIG_SWM350_FORCE_ROLE 1
-
-
 /* ================ USB common Configuration ================ */
 
 #ifdef __RTTHREAD__
